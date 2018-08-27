@@ -1,0 +1,93 @@
+function action = getMaxValue(a, R, show_row, show_reward, state, tot_rewards, N_exp, PEI_on, agent_speed)
+    
+    n = length(show_row);
+    unexplored_rows = ~show_row;
+    I = zeros(1,n);
+    I(1) =  unexplored_rows(1) + unexplored_rows(2) + 1;
+    I(n) =  unexplored_rows(n-1) + unexplored_rows(n) + 1;
+    for i = 2:n-1
+        I(i) = unexplored_rows(i-1) + unexplored_rows(i) + unexplored_rows(i+1);
+    end
+    
+    if(PEI_on)
+        %calc average reward for nonvisible rows to use for unexplored/non-visible rows
+        n = size(show_reward(show_reward == 1), 2);
+        %removes from reward that can't be seen
+        R = R.*show_reward;
+        avg_reward = sum(tot_rewards)/sum(N_exp);
+        temp = avg_reward.*unexplored_rows;
+        %assigns avg reward to all unexplored rows (~rows_visible)
+        R = R + temp;
+        V = R.*I;
+    else
+        V = R;
+    end
+    [Values, actions] = sort(V, 'descend');
+    
+    for i = 1:size(state,2)
+        %removing occupied rows from consideration
+        r = find(actions == state(i));
+        actions(r) = [];
+        Values(r) = [];
+    end
+    
+    act = find(max(Values) == Values);
+    if(size(act,2) == 1)
+        action= actions(act); %only one max
+    else
+        temp = datasample(act,1);
+%         temp = zeros(1,length(act));
+%         for ii = 1:length(act)
+%             temp(ii) = time2row(state(a), actions(ii), agent_speed);
+%         end
+%         index = find(min(temp) == temp);
+%         temp = datasample(index,1);
+%         
+         action = actions(temp);
+    end
+    
+
+    %%
+    %     % this is for targeted exploration
+    %     n = length(rows_visible);
+    %     unexplored_rows = ~rows_visible;
+    %     I = zeros(1,n);
+    %     I(1) =  unexplored_rows(1) + unexplored_rows(2);
+    %     I(n) =  unexplored_rows(n-1) + unexplored_rows(n);
+    %     for i = 2:n-1
+    %         I(i) = unexplored_rows(i-1) + unexplored_rows(i) + unexplored_rows(i+1);
+    %     end
+    %
+    %     if(PEI_on)
+    %         %calc average reward for nonvisible rows to use for
+    %         %unexplored/non-visible rows
+    %         n = size(rows_visible(rows_visible == 1), 2);
+    %         %removes from reward that can't be seen
+    %         R = R.*rows_visible;
+    %         avg_reward = sum(tot_rewards)/sum(N_exp);
+    %         temp = avg_reward.*unexplored_rows;
+    %         %assigns avg reward to all unexplored rows (~rows_visible)
+    %         R = R + temp;
+    %         V = R.*I;
+    %     else
+    %         V = R;
+    %     end
+    %     [Values, actions] = sort(V, 'descend');
+    %
+    %     for i = 1:size(state,2)
+    %         %removing occupied rows from consideration
+    %         r = find(actions == state(i));
+    %         actions(r) = [];
+    %         Values(r) = [];
+    %     end
+    %
+    %     act = find(max(Values) == Values);
+    %     if(size(act,2) == 1)
+    %         action= actions(act); %only one max
+    %     else
+    %         temp = datasample(act,1);
+    %         action = actions(temp);
+    %     end
+    % end
+    
+end
